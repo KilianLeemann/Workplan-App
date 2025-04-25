@@ -4,7 +4,7 @@ import pandas as pd
 
 if __name__ == "__main__":
     # Load the availability Excel
-    availability_df = pd.read_excel("Bidding Vorlage.xlsx", sheet_name="Tabelle1", header=1)
+    availability_df = pd.read_excel("Availability.xlsx", sheet_name="Tabelle1", header=1)
 
     # Clean column names and rename first column
     availability_df.columns = availability_df.columns.str.strip()
