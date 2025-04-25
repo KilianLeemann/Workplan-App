@@ -62,7 +62,15 @@ class Scheduler:
                     'Person': person
                 })
 
-        return pd.DataFrame(plan_data)
+        # Stunden berechnen
+        block_hours = {'10-12': 2, '12-14': 2, '14-16': 2, '16-18': 2}
+        hours_per_person = defaultdict(int)
+        for entry in plan_data:
+            hours_per_person[entry['Person']] += block_hours[entry['Time']]
+
+        df = pd.DataFrame(plan_data)
+        df["Hours"] = df["Person"].map(hours_per_person)
+        return df
 
     def _would_create_gap_sequence(self, person, new_block):
         day, time = new_block
@@ -90,26 +98,27 @@ class Scheduler:
 
         plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
 
-        # Sortier-Reihenfolge für Tage und Zeiten definieren
         day_order = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']
         time_order = ['10-12', '12-14', '14-16', '16-18']
         full_order = [f"{day} {time}" for day in day_order for time in time_order]
 
         plan_df["Block"] = pd.Categorical(plan_df["Block"], categories=full_order, ordered=True)
-
-        # Pivot-Tabelle für Heatmap
         pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
         pivot = pivot.reindex(columns=full_order, fill_value=0)
 
-        import matplotlib.pyplot as plt
-        import seaborn as sns
+        # Stunden berechnen und rechts anhängen
+        pivot["Total Hours"] = plan_df.groupby("Person")["Hours"].first()
 
         plt.figure(figsize=(len(full_order) * 0.6, len(pivot) * 0.5 + 1))
-        ax = sns.heatmap(pivot, cmap="YlGnBu", linewidths=0.5, linecolor='gray', cbar=False)
+        ax = sns.heatmap(pivot.drop(columns=["Total Hours"]), cmap="YlGnBu",
+                         linewidths=0.5, linecolor='gray', cbar=False)
 
-        # Fette vertikale Linien zur Trennung der Tage (nach je 4 Zeitslots)
         for i in range(4, len(full_order), 4):
             ax.axvline(i, color='black', linewidth=2)
+
+        for y, person in enumerate(pivot.index):
+            ax.text(len(full_order) + 0.5, y + 0.5, f"{pivot.loc[person, 'Total Hours']} h",
+                    va='center', ha='left', fontsize=10, fontweight='bold')
 
         plt.title("Visualisierung Arbeitsplan")
         plt.xlabel("Zeitblöcke")
@@ -119,5 +128,3 @@ class Scheduler:
         plt.savefig(filename)
         plt.close()
         print(f"Visualisierung gespeichert als: {filename}")
-
-
