@@ -2,7 +2,7 @@
 class Person:
     def __init__(self, name, availability, max_blocks):
         self.name = name
-        self.availability = availability  # dict with (day, time) -> priority
+        self.availability = availability
         self.max_blocks = max_blocks
         self.assigned_blocks = []
 
@@ -14,6 +14,9 @@ class Person:
 
     def add_block(self, block):
         self.assigned_blocks.append(block)
+
+    def reset_blocks(self):
+        self.assigned_blocks = []
 
     def block_count(self):
         return len(self.assigned_blocks)

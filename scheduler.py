@@ -2,6 +2,8 @@
 import pandas as pd
 from person import Person
 from collections import defaultdict
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 class Scheduler:
     def __init__(self, df):
@@ -10,7 +12,6 @@ class Scheduler:
         self.days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']
         self.times = ['10-12', '12-14', '14-16', '16-18']
         self.blocks = [(day, time) for day in self.days for time in self.times]
-        self.plan = []
 
     def parse_availability(self):
         for _, row in self.df.iterrows():
@@ -25,7 +26,12 @@ class Scheduler:
             self.persons.append(Person(name, availability, max_blocks))
 
     def generate_plans(self, num_plans=3):
-        return [self._generate_single_plan() for _ in range(num_plans)]
+        plans = []
+        for _ in range(num_plans):
+            for person in self.persons:
+                person.reset_blocks()
+            plans.append(self._generate_single_plan())
+        return plans
 
     def _generate_single_plan(self):
         plan = []
@@ -60,32 +66,38 @@ class Scheduler:
 
     def _would_create_gap_sequence(self, person, new_block):
         day, time = new_block
-
-        # Verfügbare Blöcke an diesem Tag mit >=1
         available = [t for t in self.times if person.availability.get((day, t), 0) >= 1]
         if len(available) < 3:
             return False
 
-        # Bereits zugewiesene Blöcke + neuer Block
         assigned = [t for d, t in person.assigned_blocks if d == day]
-        simulated = sorted(set(assigned + [time]), key=self.times.index)
+        test_blocks = sorted(set(assigned + [time]), key=self.times.index)
 
-        # Liste aller verfügbaren Blöcke als 0/1-Muster (zugewiesen oder nicht)
-        sequence = []
-        for t in self.times:
-            if t in available:
-                sequence.append(1 if t in simulated else 0)
-            else:
-                sequence.append(-1)  # ignorieren
+        available_idx = [self.times.index(t) for t in available]
+        first_idx = min(self.times.index(t) for t in test_blocks)
+        last_idx = max(self.times.index(t) for t in test_blocks)
 
-        # Erlaube nur: alle 1 an einem Stück, ohne dazwischen 0
-        in_block = False
-        gap_found = False
-        for val in sequence:
-            if val == 1:
-                if gap_found:
-                    return True  # wir hatten eine Lücke vor erneutem Block
-                in_block = True
-            elif val == 0 and in_block:
-                gap_found = True  # wir sind in einem Block, dann kam 0
+        for idx in range(first_idx, last_idx + 1):
+            t = self.times[idx]
+            if t in available and t not in test_blocks:
+                return True
         return False
+
+    def visualize_plan(self, plan_df, filename="plan.png"):
+        if plan_df.empty:
+            print("Kein Plan zum Visualisieren.")
+            return
+
+        plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
+        pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
+
+        plt.figure(figsize=(18, 6))
+        sns.heatmap(pivot, cmap="YlGnBu", linewidths=0.5, linecolor='gray', cbar=False)
+        plt.title("Visualisierung Arbeitsplan")
+        plt.xlabel("Zeitblöcke")
+        plt.ylabel("Mitarbeitende")
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(filename)
+        plt.close()
+        print(f"Visualisierung gespeichert als: {filename}")
