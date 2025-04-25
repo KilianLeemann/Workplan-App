@@ -10,8 +10,6 @@ if __name__ == "__main__":
     availability_df.columns = availability_df.columns.str.strip()
     availability_df.rename(columns={availability_df.columns[0]: "Name"}, inplace=True)
 
-    print("Spalten:", availability_df.columns.tolist())
-
     # Create Scheduler instance and process data
     scheduler = Scheduler(availability_df)
     scheduler.parse_availability()
