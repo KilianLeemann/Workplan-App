@@ -88,22 +88,28 @@ class Scheduler:
             print("Kein Plan zum Visualisieren.")
             return
 
-        # Block-Spalte erzeugen
         plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
 
-        # Sortierung der Wochentage + Zeiten
+        # Sortier-Reihenfolge für Tage und Zeiten definieren
         day_order = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']
         time_order = ['10-12', '12-14', '14-16', '16-18']
         full_order = [f"{day} {time}" for day in day_order for time in time_order]
 
         plan_df["Block"] = pd.Categorical(plan_df["Block"], categories=full_order, ordered=True)
 
+        # Pivot-Tabelle für Heatmap
         pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
         pivot = pivot.reindex(columns=full_order, fill_value=0)
 
-        # Dynamische Plot-Größe je nach Anzahl Personen
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+
         plt.figure(figsize=(len(full_order) * 0.6, len(pivot) * 0.5 + 1))
-        sns.heatmap(pivot, cmap="YlGnBu", linewidths=0.5, linecolor='gray', cbar=False)
+        ax = sns.heatmap(pivot, cmap="YlGnBu", linewidths=0.5, linecolor='gray', cbar=False)
+
+        # Fette vertikale Linien zur Trennung der Tage (nach je 4 Zeitslots)
+        for i in range(4, len(full_order), 4):
+            ax.axvline(i, color='black', linewidth=2)
 
         plt.title("Visualisierung Arbeitsplan")
         plt.xlabel("Zeitblöcke")
@@ -113,4 +119,5 @@ class Scheduler:
         plt.savefig(filename)
         plt.close()
         print(f"Visualisierung gespeichert als: {filename}")
+
 
