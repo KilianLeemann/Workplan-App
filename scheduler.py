@@ -62,7 +62,6 @@ class Scheduler:
                     'Person': person
                 })
 
-        # Stunden berechnen
         block_hours = {'10-12': 2, '12-14': 2, '14-16': 2, '16-18': 2}
         hours_per_person = defaultdict(int)
         for entry in plan_data:
@@ -106,7 +105,6 @@ class Scheduler:
         pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
         pivot = pivot.reindex(columns=full_order, fill_value=0)
 
-        # Stunden berechnen und rechts anhängen
         pivot["Total Hours"] = plan_df.groupby("Person")["Hours"].first()
 
         plt.figure(figsize=(len(full_order) * 0.6, len(pivot) * 0.5 + 1))
@@ -128,3 +126,14 @@ class Scheduler:
         plt.savefig(filename)
         plt.close()
         print(f"Visualisierung gespeichert als: {filename}")
+
+    def export_excel(self, plan_df, filename):
+        """
+        Erstellt eine Excel-Datei mit Personen als Zeilen und Zeitblöcken als Spalten.
+        Zusätzlich wird die Gesamtstundenzahl je Person als letzte Spalte ausgegeben.
+        """
+        plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
+        pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
+        pivot["Total Hours"] = plan_df.groupby("Person")["Hours"].first()
+        pivot.reset_index().to_excel(filename, index=False)
+        print(f"Excel exportiert als: {filename}")
