@@ -4,6 +4,7 @@ from person import Person
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import seaborn as sns
+import random
 
 class Scheduler:
     def __init__(self, df):
@@ -27,13 +28,16 @@ class Scheduler:
 
     def generate_plans(self, num_plans=3):
         plans = []
-        for _ in range(num_plans):
+        for i in range(num_plans):
             for person in self.persons:
                 person.reset_blocks()
-            plans.append(self._generate_single_plan())
+            plans.append(self._generate_single_plan(seed=i))
         return plans
 
-    def _generate_single_plan(self):
+    def _generate_single_plan(self, seed=None):
+        if seed is not None:
+            random.seed(seed)
+
         plan = []
         slots = defaultdict(list)
 
@@ -42,6 +46,7 @@ class Scheduler:
             slots[block] = []
 
         persons_sorted = sorted(self.persons, key=lambda p: -p.available_blocks_count())
+        random.shuffle(persons_sorted)  # Zufälligkeit einbauen
 
         for block in self.blocks:
             eligible = [p for p in persons_sorted if p.can_receive_block(block)]
