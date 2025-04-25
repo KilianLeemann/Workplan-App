@@ -42,7 +42,7 @@ class Scheduler:
             eligible.sort(key=lambda p: (-p.wants_block(block), p.block_count()))
             for p in eligible:
                 if len(slots[block]) < (2 if block[1] == '10-12' else 3) and p.block_count() < p.max_blocks:
-                    if self._creates_gap(p, block):
+                    if self._would_create_gap_sequence(p, block):
                         continue
                     p.add_block(block)
                     slots[block].append(p.name)
@@ -58,20 +58,34 @@ class Scheduler:
 
         return pd.DataFrame(plan_data)
 
-    def _creates_gap(self, person, new_block):
-        day_blocks = [t for t in self.times if person.availability.get((new_block[0], t), 0) >= 1]
-        if len(day_blocks) < 3:
+    def _would_create_gap_sequence(self, person, new_block):
+        day, time = new_block
+
+        # Verfügbare Blöcke an diesem Tag mit >=1
+        available = [t for t in self.times if person.availability.get((day, t), 0) >= 1]
+        if len(available) < 3:
             return False
 
-        person_blocks = [t for d, t in person.assigned_blocks if d == new_block[0]]
-        test_blocks = person_blocks + [new_block[1]]
-        test_blocks_sorted = sorted(set(test_blocks), key=self.times.index)
+        # Bereits zugewiesene Blöcke + neuer Block
+        assigned = [t for d, t in person.assigned_blocks if d == day]
+        simulated = sorted(set(assigned + [time]), key=self.times.index)
 
-        for i in range(1, len(test_blocks_sorted) - 1):
-            prev = test_blocks_sorted[i - 1]
-            next_ = test_blocks_sorted[i + 1]
-            if self.times.index(next_) - self.times.index(prev) == 2:
-                mid = self.times[self.times.index(prev) + 1]
-                if mid not in test_blocks_sorted:
-                    return True
+        # Liste aller verfügbaren Blöcke als 0/1-Muster (zugewiesen oder nicht)
+        sequence = []
+        for t in self.times:
+            if t in available:
+                sequence.append(1 if t in simulated else 0)
+            else:
+                sequence.append(-1)  # ignorieren
+
+        # Erlaube nur: alle 1 an einem Stück, ohne dazwischen 0
+        in_block = False
+        gap_found = False
+        for val in sequence:
+            if val == 1:
+                if gap_found:
+                    return True  # wir hatten eine Lücke vor erneutem Block
+                in_block = True
+            elif val == 0 and in_block:
+                gap_found = True  # wir sind in einem Block, dann kam 0
         return False
