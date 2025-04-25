@@ -88,11 +88,23 @@ class Scheduler:
             print("Kein Plan zum Visualisieren.")
             return
 
+        # Block-Spalte erzeugen
         plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
-        pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
 
-        plt.figure(figsize=(18, 6))
+        # Sortierung der Wochentage + Zeiten
+        day_order = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']
+        time_order = ['10-12', '12-14', '14-16', '16-18']
+        full_order = [f"{day} {time}" for day in day_order for time in time_order]
+
+        plan_df["Block"] = pd.Categorical(plan_df["Block"], categories=full_order, ordered=True)
+
+        pivot = plan_df.pivot_table(index="Person", columns="Block", aggfunc="size", fill_value=0)
+        pivot = pivot.reindex(columns=full_order, fill_value=0)
+
+        # Dynamische Plot-Größe je nach Anzahl Personen
+        plt.figure(figsize=(len(full_order) * 0.6, len(pivot) * 0.5 + 1))
         sns.heatmap(pivot, cmap="YlGnBu", linewidths=0.5, linecolor='gray', cbar=False)
+
         plt.title("Visualisierung Arbeitsplan")
         plt.xlabel("Zeitblöcke")
         plt.ylabel("Mitarbeitende")
@@ -101,3 +113,4 @@ class Scheduler:
         plt.savefig(filename)
         plt.close()
         print(f"Visualisierung gespeichert als: {filename}")
+
