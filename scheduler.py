@@ -14,7 +14,7 @@ class Scheduler:
 
     def parse_availability(self):
         for _, row in self.df.iterrows():
-            name = row['Name']
+            name = row.get("Name", row[row.index[0]])  # robust fallback
             availability = {}
             idx = 1
             for day in ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']:

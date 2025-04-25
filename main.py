@@ -4,17 +4,12 @@ import pandas as pd
 
 if __name__ == "__main__":
     # Load the availability Excel
-    availability_df = pd.read_excel("/Users/kilianleemann/Documents/HSG/Master/MLE/3_Semester/Programming with Advanced Computer Languages/Project/hsg-workplanapp/Bidding Vorlage.xlsx", sheet_name="Tabelle1", header=1)
-    
-    # ist nur für den Test
-    availability_df.columns = availability_df.columns.str.strip()  # säubert Leerzeichen
-    print("Spalten:", availability_df.columns.tolist())
-    
-    '''
-    # Clean column names from invisible characters
-    availability_df.columns = availability_df.columns.str.strip()
+    availability_df = pd.read_excel("Bidding Vorlage.xlsx", sheet_name="Tabelle1", header=1)
 
-    # Debug: print available columns
+    # Clean column names and rename first column
+    availability_df.columns = availability_df.columns.str.strip()
+    availability_df.rename(columns={availability_df.columns[0]: "Name"}, inplace=True)
+
     print("Spalten:", availability_df.columns.tolist())
 
     # Create Scheduler instance and process data
@@ -26,4 +21,4 @@ if __name__ == "__main__":
     for idx, plan in enumerate(plans):
         plan.to_excel(f"Arbeitsplan_Vorschlag_{idx+1}.xlsx", index=False)
 
-    print("3 Arbeitspläne wurden erfolgreich exportiert.")'''
+    print("3 Arbeitspläne wurden erfolgreich exportiert.")
