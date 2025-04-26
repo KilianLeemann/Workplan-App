@@ -41,43 +41,51 @@ class Scheduler:
         slots = defaultdict(list)
 
         for block in self.blocks:
-            needed = 2 if block[1] == '10-12' else 3
             slots[block] = []
 
         persons_sorted = sorted(self.persons, key=lambda p: -p.available_blocks_count())
         random.shuffle(persons_sorted)
 
-        for block in self.blocks:
-            eligible = [p for p in persons_sorted if p.can_receive_block(block)]
-            eligible.sort(key=lambda p: (-p.wants_block(block), p.block_count()))
-            for p in eligible:
-                if len(slots[block]) < (2 if block[1] == '10-12' else 3) and p.block_count() < p.max_blocks:
-                    if self._would_create_gap_sequence(p, block):
-                        continue
-                    p.add_block(block)
-                    slots[block].append(p.name)
-
-        # Zusatz: Sicherstellen, dass Personen mit >=5 Verfügbarkeiten mindestens 4 Einsätze haben
-        for p in persons_sorted:
-            if p.available_blocks_count() >= 5 and p.block_count() < 4:
-                additional_blocks = [block for block in self.blocks if p.can_receive_block(block) and p.name not in slots[block]]
-                additional_blocks.sort(key=lambda x: (x[0], self.times.index(x[1])))
-                for block in additional_blocks:
-                    if len(slots[block]) < (2 if block[1] == '10-12' else 3) and p.block_count() < 4:
+        def assign_blocks(priority_level):
+            for block in self.blocks:
+                needed = 2 if block[1] == '10-12' else 3
+                if len(slots[block]) >= needed:
+                    continue
+                eligible = [p for p in persons_sorted if p.wants_block(block) == priority_level and p.block_count() < p.max_blocks and p.can_receive_block(block)]
+                eligible.sort(key=lambda p: (p.block_count(), -p.available_blocks_count()))
+                for p in eligible:
+                    if len(slots[block]) < needed:
                         if self._would_create_gap_sequence(p, block):
                             continue
                         p.add_block(block)
                         slots[block].append(p.name)
 
-        # Zusatz: Verbleibende Blöcke fair verteilen
-        free_blocks = [block for block in self.blocks if len(slots[block]) < (2 if block[1] == '10-12' else 3)]
-        free_blocks.sort(key=lambda x: (x[0], self.times.index(x[1])))
+        for level in [3, 2, 1]:
+            assign_blocks(level)
 
+        # Mindestzuteilung sichern: mindestens 4 Blöcke für Personen mit >=5 Verfügbarkeiten
+        for p in persons_sorted:
+            if p.available_blocks_count() >= 5 and p.block_count() < 4:
+                additional_blocks = [block for block in self.blocks if p.can_receive_block(block) and p.name not in slots[block]]
+                additional_blocks.sort(key=lambda x: (x[0], self.times.index(x[1])))
+                for block in additional_blocks:
+                    needed = 2 if block[1] == '10-12' else 3
+                    if len(slots[block]) < needed and p.block_count() < 4:
+                        if self._would_create_gap_sequence(p, block):
+                            continue
+                        p.add_block(block)
+                        slots[block].append(p.name)
+
+        # Verbleibende Blöcke verteilen
+        free_blocks = [block for block in self.blocks if len(slots[block]) < (2 if block[1] == '10-12' else 3)]
         for block in free_blocks:
+            needed = 2 if block[1] == '10-12' else 3
+            if len(slots[block]) >= needed:
+                continue
             eligible = [p for p in persons_sorted if p.can_receive_block(block) and p.block_count() < p.max_blocks]
             eligible.sort(key=lambda p: (-p.available_blocks_count(), p.block_count()))
             for p in eligible:
-                if len(slots[block]) < (2 if block[1] == '10-12' else 3):
+                if len(slots[block]) < needed:
                     if self._would_create_gap_sequence(p, block):
                         continue
                     p.add_block(block)
