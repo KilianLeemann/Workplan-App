@@ -52,7 +52,11 @@ class Scheduler:
                 if len(slots[block]) >= needed:
                     continue
                 eligible = [p for p in persons_sorted if p.wants_block(block) == priority_level and p.block_count() < p.max_blocks and p.can_receive_block(block)]
-                eligible.sort(key=lambda p: (p.block_count(), -p.available_blocks_count()))
+                eligible.sort(key=lambda p: (
+                    0 if any(d == block[0] for d, t in p.assigned_blocks) else 1,  # bevorzugt gleicher Tag
+                    p.block_count(),
+                    -p.available_blocks_count()
+                ))
                 for p in eligible:
                     if len(slots[block]) < needed:
                         if self._would_create_gap_sequence(p, block):
@@ -83,7 +87,11 @@ class Scheduler:
             if len(slots[block]) >= needed:
                 continue
             eligible = [p for p in persons_sorted if p.can_receive_block(block) and p.block_count() < p.max_blocks]
-            eligible.sort(key=lambda p: (-p.available_blocks_count(), p.block_count()))
+            eligible.sort(key=lambda p: (
+                0 if any(d == block[0] for d, t in p.assigned_blocks) else 1,
+                -p.available_blocks_count(),
+                p.block_count()
+            ))
             for p in eligible:
                 if len(slots[block]) < needed:
                     if self._would_create_gap_sequence(p, block):
