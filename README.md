@@ -39,5 +39,5 @@ The program can then be launched from the command line using:
 python main.py
 ```
 
-The final schedule will be saved in the same directory as an Excel file and a PNG graphic.
+Three possible schedules will be generated and saved in the same directory—each as an Excel file and a PNG graphic. This allows comparison between multiple fair and complete solutions.
 
