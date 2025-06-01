@@ -21,7 +21,7 @@ For each block, the program checks whether staff are still needed (2 people for 
 The eligible employees are then ranked according to the following criteria:  
 First, employees already scheduled for that day are preferred, in order to minimize the number of separate workdays and reduce commuting.  
 Second, employees with fewer total assigned hours are favored to ensure a fair distribution of work.  
-A third important aspect is the avoidance of schedule gaps. If assigning a person would create idle time between shifts—such as working 10:00–12:00 and then again at 14:00–16:00—the algorithm tries to avoid that. Such "gap sequences" are only accepted when no better options exist.
+A third important aspect is the avoidance of schedule gaps. If assigning a person would create idle time between shifts — such as working 10:00–12:00 and then again at 14:00–16:00 — the algorithm tries to avoid that. Such "gap sequences" are only accepted when no better options exist.
 
 If a candidate passes all conditions, they are assigned to the shift. This process repeats until all time slots are optimally staffed.
 
