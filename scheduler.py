@@ -369,7 +369,7 @@ class Scheduler:
                 fontweight='bold'
             )
 
-        plt.title("Visualisierung Arbeitsplan")
+        plt.title("Arbeitsplan")
         plt.xlabel("Zeitblöcke")
         plt.ylabel("Mitarbeitende")
         plt.xticks(rotation=90)
@@ -378,7 +378,7 @@ class Scheduler:
         # Save and close the figure
         plt.savefig(filename)
         plt.close()
-        print(f"Visualisierung gespeichert als: {filename}")
+        print(f"Workplan saved as: {filename}")
 
     def export_excel(self, plan_df, filename):
         """
