@@ -1,7 +1,7 @@
-# Work Schedule App
+# Work Scheduling App
 ## Description
 
-The Work Schedule App is designed to automatically generate a work schedule for a team of 10–12 employees responsible for two helpdesks. These helpdesks are open Monday through Friday from 10:00 AM to 6:00 PM. The working hours are divided into four 2-hour shifts: 10:00–12:00 (with 2 employees), and 12:00–14:00, 14:00–16:00, and 16:00–18:00 (with 3 employees each).
+The Work Scheduling App is designed to automatically generate a work schedule for a team of 10–12 employees responsible for two helpdesks. These helpdesks are open Monday through Friday from 10:00 AM to 6:00 PM. The working hours are divided into four 2-hour shifts: 10:00–12:00 (with 2 employees), and 12:00–14:00, 14:00–16:00, and 16:00–18:00 (with 3 employees each).
 
 ## Input: Employee Availability
 
