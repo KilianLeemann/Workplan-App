@@ -1,4 +1,5 @@
 # person.py
+# inspired by ChatGPT
 
 class Person:
     """

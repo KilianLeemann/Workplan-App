@@ -1,4 +1,5 @@
 # scheduler.py
+# inspired by ChatGPT
 
 import pandas as pd
 from person import Person
