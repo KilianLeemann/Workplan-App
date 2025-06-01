@@ -7,8 +7,8 @@ The Workplan App is designed to automatically generate a work schedule for a tea
 
 Employees submit their availability in an Excel file named `Availability.xlsx`. Availability is expressed using a numerical preference system. Each employee may mark **a maximum of four shifts** with a 3 (highest preference), to ensure fairness across the team:  
 A **3** means “I would most like to work this shift,”  
-a **2** means “I would like to work this shift,”  
-a **1** means “I could work if no one else is available,”  
+A **2** means “I would like to work this shift,”  
+A **1** means “I could work if no one else is available,”  
 and a **0** means the employee is not available at that time.  
 The Excel file must be located in the same directory as the Python project.
 
