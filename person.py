@@ -2,12 +2,11 @@
 
 class Person:
     """
-    Represents a single employee (or person) who can be assigned to work blocks.
-    Each Person has:
-      - a name (string)
-      - a dictionary of availability, mapping (day, time) tuples to an integer "preference" or "availability level"
-      - a maximum number of blocks they can work (max_blocks)
-      - a list of blocks they've been assigned (assigned_blocks)
+    Represents one person (an employee) including:
+      - name (string)
+      - availability for each time slot (dictionary mapping (day, time) to a number)
+      - maximum number of slots that can be assigned (max_blocks)
+      - list of slots that have been assigned (assigned_blocks)
     """
 
     def __init__(self, name, availability, max_blocks):
@@ -15,83 +14,85 @@ class Person:
         Initialize a Person instance.
 
         Parameters:
-        - name (str): The employee's name.
-        - availability (dict): A mapping from (day, time) tuples to availability levels (e.g., 0 = unavailable, 1 or higher = available).
-        - max_blocks (int): Maximum number of time blocks the person should be assigned in one schedule.
+        - name (str): The person's name, for example "Alice".
+        - availability (dict): Each key is a (day, time) tuple, and each value is a number (0 = unavailable, 1 or higher = available).
+        - max_blocks (int): The maximum number of time slots this person may be assigned.
         """
         self.name = name
         self.availability = availability
         self.max_blocks = max_blocks
-        self.assigned_blocks = []  # List of (day, time) tuples representing blocks assigned to this person.
+        # Start with no assigned slots
+        self.assigned_blocks = []
 
     def reset_blocks(self):
         """
-        Reset this person's assigned blocks.
-        Call this before starting a fresh scheduling attempt to clear any prior assignments.
+        Clear any previously assigned slots so that the person has none before a new scheduling attempt.
         """
         self.assigned_blocks = []
 
     def block_count(self):
         """
-        Return the current number of blocks assigned to this person.
+        Return the number of slots currently assigned to this person.
         """
         return len(self.assigned_blocks)
 
     def available_blocks_count(self, min_level=1):
         """
-        Count how many blocks this person is willing to work, based on a minimum availability level.
+        Count how many slots are marked with availability >= min_level (default is 1).
 
         Parameters:
-        - min_level (int): The minimum availability threshold (default is 1). Only blocks with availability >= min_level are counted.
+        - min_level (int): The minimum availability threshold (slots with availability below this are not counted).
 
         Returns:
-        - int: Number of available blocks meeting the threshold.
+        - int: The count of slots meeting or exceeding the threshold.
         """
-        return sum(1 for v in self.availability.values() if v >= min_level)
+        count = 0
+        for level in self.availability.values():
+            if level >= min_level:
+                count += 1
+        return count
 
     def can_receive_block(self, block):
         """
-        Check if this person is available (availability > 0) for the given block.
+        Determine whether this person is available for the given slot.
 
         Parameters:
-        - block (tuple): A (day, time) tuple to check.
+        - block (tuple): A (day, time) tuple, for example ("Monday", "10-12").
 
         Returns:
-        - bool: True if the person can be assigned to that block.
+        - bool: True if availability for that slot is greater than zero.
         """
         return block in self.availability and self.availability[block] > 0
 
     def add_block(self, block):
         """
-        Assign a block to this person by appending it to their assigned_blocks list.
-
-        Parameters:
-        - block (tuple): A (day, time) tuple that is being assigned to this person.
+        Assign the specified slot to this person by adding it to assigned_blocks.
         """
         self.assigned_blocks.append(block)
 
     def wants_block(self, block):
         """
-        Return how much this person "wants" or can handle a given block,
-        typically based on their availability mapping.
+        Return the availability value for the given slot; 0 if the slot is not listed.
 
         Parameters:
         - block (tuple): A (day, time) tuple.
 
         Returns:
-        - int: The availability level for that block (0 if not present).
+        - int: The availability level for that slot.
         """
         return self.availability.get(block, 0)
 
     def assigned_hours(self):
         """
-        Calculate the total number of hours this person has been assigned,
-        assuming each time block is 2 hours long for these specific slots.
+        Calculate total hours assigned, assuming each time slot covers 2 hours:
+          - "10-12" = 2 hours,
+          - "12-14" = 2 hours, etc.
 
         Returns:
-        - int: Total assigned hours.
+        - int: The sum of hours for all assigned slots.
         """
-        # Define the hours for each time block; here each block is 2 hours.
-        block_hours = {'10-12': 2, '12-14': 2, '14-16': 2, '16-18': 2}
-        # Sum the hours for each assigned block
-        return sum(block_hours[time] for (day, time) in self.assigned_blocks)
+        hours_per_slot = {"10-12": 2, "12-14": 2, "14-16": 2, "16-18": 2}
+        total = 0
+        for day, time in self.assigned_blocks:
+            total += hours_per_slot.get(time, 0)
+        return total
