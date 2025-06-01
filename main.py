@@ -35,4 +35,4 @@ if __name__ == "__main__":
         scheduler.export_excel(plan.copy(), filename=f"{filename}.xlsx")
 
     # Indicate that scheduling has finished.
-    print("Planerstellung abgeschlossen.")
+    print("scheduling has finished.")

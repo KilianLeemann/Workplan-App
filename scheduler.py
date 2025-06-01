@@ -18,7 +18,7 @@ class Scheduler:
         Initialize the Scheduler instance.
 
         Parameters:
-        - df (pd.DataFrame): A table where each row represents one person.
+        df (pd.DataFrame): A table where each row represents one person.
           Columns include the person's name, their availability for each day/time slot,
           and the maximum number of hours (or blocks) they can work.
         """
@@ -52,11 +52,11 @@ class Scheduler:
              Add this Person to the internal list self.persons.
         """
         for _, row in self.df.iterrows():
-            # 1. Get the person's name; fallback to the first column if "Name" is not present.
+            # Get the person's name; fallback to the first column if "Name" is not present.
             name = row.get("Name", row[row.index[0]])
 
-            # 2. Build the availability dictionary.
-            #    The availability values are taken in the exact order of self.days and self.times.
+            # Build the availability dictionary.
+            # The availability values are taken in the exact order of self.days and self.times.
             availability = {}
             idx = 1  # Start from the second column (index 1) since index 0 is the name
             for day in self.days:
@@ -64,10 +64,10 @@ class Scheduler:
                     availability[(day, time)] = row.iloc[idx]
                     idx += 1
 
-            # 3. The last column of the row indicates the maximum hours (or blocks) this person can work.
+            # The last column of the row indicates the maximum hours (or blocks) this person can work.
             max_blocks = row.iloc[-1]
 
-            # 4. Instantiate a Person and add to the list.
+            # Instantiate a Person and add to the list.
             self.persons.append(Person(name, availability, max_blocks))
 
     def generate_plans(self, num_plans=3):
@@ -176,12 +176,12 @@ class Scheduler:
                         p.add_block(block)
                         slots[block].append(p.name)
 
-        # 5. First pass: assign blocks for priority levels 3, then 2, then 1
+        # First pass: assign blocks for priority levels 3, then 2, then 1
         for level in [3, 2, 1]:
             assign_blocks(level)
 
-        # 6. Second pass: ensure that any person with high overall availability (5+ blocks)
-        #    and fewer than 8 assigned hours gets extra blocks in chronological order
+        # Second pass: ensure that any person with high overall availability (5+ blocks)
+        # and fewer than 8 assigned hours gets extra blocks in chronological order
         for p in persons_sorted:
             if p.available_blocks_count() >= 5 and p.assigned_hours() < 8:
                 # List all blocks that the person can take and is not yet assigned
@@ -200,8 +200,8 @@ class Scheduler:
                         p.add_block(block)
                         slots[block].append(p.name)
 
-        # 7. Third pass: fill any remaining free slots regardless of priority,
-        #    choosing among those with capacity and availability
+        # Third pass: fill any remaining free slots regardless of priority,
+        # choosing among those with capacity and availability
         free_blocks = [
             block for block in self.blocks
             if len(slots[block]) < (2 if block[1] == '10-12' else 3)
@@ -230,7 +230,7 @@ class Scheduler:
                     p.add_block(block)
                     slots[block].append(p.name)
 
-        # 8. Build a list of assigned entries: each entry is a dictionary with 'Day', 'Time', and 'Person'
+        # Build a list of assigned entries: each entry is a dictionary with 'Day', 'Time', and 'Person'
         plan_data = []
         for block in self.blocks:
             for person_name in slots[block]:
@@ -240,17 +240,17 @@ class Scheduler:
                     'Person': person_name
                 })
 
-        # 9. Calculate total hours per person (each block adds 2 hours)
+        # Calculate total hours per person (each block adds 2 hours)
         block_hours = {'10-12': 2, '12-14': 2, '14-16': 2, '16-18': 2}
         hours_per_person = defaultdict(int)
         for entry in plan_data:
             hours_per_person[entry['Person']] += block_hours[entry['Time']]
 
-        # 10. Create a DataFrame from plan_data and add a column "Hours"
+        # Create a DataFrame from plan_data and add a column "Hours"
         df = pd.DataFrame(plan_data)
         df["Hours"] = df["Person"].map(hours_per_person)
 
-        # 11. Return the completed schedule DataFrame
+        # Return the completed schedule DataFrame
         return df
 
     def _would_create_gap_sequence(self, person, new_block):
@@ -270,22 +270,22 @@ class Scheduler:
           6. Otherwise → return False.
         """
         day, time = new_block
-        # 1. Find all times on that day where the person’s availability >= 1
+        # Find all times on that day where the person’s availability >= 1
         available = [
             t for t in self.times
             if person.availability.get((day, t), 0) >= 1
         ]
-        # 2. If fewer than 3 slots are available on that day, no risk of a gap
+        # If fewer than 3 slots are available on that day, no risk of a gap
         if len(available) < 3:
             return False
 
-        # 3. List currently assigned times on that day
+        # List currently assigned times on that day
         assigned = [t for d, t in person.assigned_blocks if d == day]
 
-        # 4. Combine assigned times with the potential new time, then sort
+        # Combine assigned times with the potential new time, then sort
         test_blocks = sorted(set(assigned + [time]), key=self.times.index)
 
-        # 5. Check for any “gap” between the earliest and latest assigned slot
+        # Check for any “gap” between the earliest and latest assigned slot
         first_idx = min(self.times.index(t) for t in test_blocks)
         last_idx = max(self.times.index(t) for t in test_blocks)
         for idx in range(first_idx, last_idx + 1):
@@ -294,7 +294,7 @@ class Scheduler:
                 # A gap is found: available but not assigned
                 return True
 
-        # 6. No gap detected
+        # No gap detected
         return False
 
     def visualize_plan(self, plan_df, filename="plan.png"):
@@ -313,23 +313,23 @@ class Scheduler:
              - The "Total Hours" value is drawn as text at the end of each row.
           8. Save the figure to the given filename.
         """
-        # 1. If no assignments exist, indicate that no plan is available for visualization
+        # If no assignments exist, indicate that no plan is available for visualization
         if plan_df.empty:
             print("Kein Plan zum Visualisieren.")
             return
 
-        # 2. Combine Day and Time into a single string called "Block"
+        # Combine Day and Time into a single string called "Block"
         plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
 
-        # 3. Define the full order of possible Block labels (Monday 10-12 → Friday 16-18)
+        # Define the full order of possible Block labels (Monday 10-12 → Friday 16-18)
         day_order = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']
         time_order = ['10-12', '12-14', '14-16', '16-18']
         full_order = [f"{day} {time}" for day in day_order for time in time_order]
 
-        # 4. Convert "Block" column to categorical type with the specified order
+        # Convert "Block" column to categorical type with the specified order
         plan_df["Block"] = pd.Categorical(plan_df["Block"], categories=full_order, ordered=True)
 
-        # 5. Pivot so each row is a Person, each column is a Block, and values count assignments (0 or 1)
+        # Pivot so each row is a Person, each column is a Block, and values count assignments (0 or 1)
         pivot = plan_df.pivot_table(
             index="Person",
             columns="Block",
@@ -339,10 +339,10 @@ class Scheduler:
         # Ensure that all columns appear in the correct order
         pivot = pivot.reindex(columns=full_order, fill_value=0)
 
-        # 6. Add a "Total Hours" column using the first "Hours" entry for each person
+        # Add a "Total Hours" column using the first "Hours" entry for each person
         pivot["Total Hours"] = plan_df.groupby("Person")["Hours"].first()
 
-        # 7. Draw the heatmap
+        # Draw the heatmap
         plt.figure(figsize=(len(full_order) * 0.6, len(pivot) * 0.5 + 1))
         ax = sns.heatmap(
             pivot.drop(columns=["Total Hours"]),  # Exclude the Total Hours from the colored grid
@@ -356,7 +356,7 @@ class Scheduler:
         for i in range(4, len(full_order), 4):
             ax.axvline(i, color='black', linewidth=2)
 
-        # 7b. Draw each person's total hours to the right of their row
+        # Draw each person's total hours to the right of their row
         for y, person in enumerate(pivot.index):
             ax.text(
                 len(full_order) + 0.5,
@@ -374,7 +374,7 @@ class Scheduler:
         plt.xticks(rotation=90)
         plt.tight_layout()
 
-        # 8. Save and close the figure
+        # Save and close the figure
         plt.savefig(filename)
         plt.close()
         print(f"Visualisierung gespeichert als: {filename}")
@@ -390,7 +390,7 @@ class Scheduler:
           4. Reset the index so that "Person" becomes a regular column again.
           5. Write the resulting table to the specified Excel file.
         """
-        # 1. Combine Day and Time for each row
+        # Combine Day and Time for each row
         plan_df["Block"] = plan_df["Day"] + " " + plan_df["Time"]
 
         # 2. Pivot to count how many times each person appears in each block
@@ -401,11 +401,11 @@ class Scheduler:
             fill_value=0
         )
 
-        # 3. Add "Total Hours" by summing the "Hours" column for each person
+        # Add "Total Hours" by summing the "Hours" column for each person
         pivot["Total Hours"] = plan_df.groupby("Person")["Hours"].first()
 
-        # 4. Reset index so "Person" becomes a column again
+        # Reset index so "Person" becomes a column again
         pivot.reset_index().to_excel(filename, index=False)
 
-        # 5. Indicate that the Excel file was created successfully
+        # Indicate that the Excel file was created successfully
         print(f"Excel exportiert als: {filename}")
