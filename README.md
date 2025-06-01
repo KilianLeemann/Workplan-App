@@ -16,7 +16,7 @@ The Excel file must be located in the same directory as the Python project.
 
 The program processes the availability information and generates a work schedule that covers all required shifts, takes preferences into account as much as possible, and distributes the workload fairly. The scheduling algorithm processes the week in blocks, considering each day and time slot one at a time. It prioritizes assignments by availability score, starting with 3, then 2, then 1. Blocks marked with 0 for a person are skipped.
 
-For each block, the program checks whether staff are still needed (2 people for 10:00–12:00, 3 people for all other blocks). If so, it selects suitable candidates—those who meet the availability preference, have enough remaining work capacity, and are available at that time.
+For each block, the program checks whether staff are still needed (2 people for 10:00–12:00, 3 people for all other blocks). If so, it selects suitable candidates who meet the availability preferences, have enough remaining work capacity, and are available at that time.
 
 The eligible employees are then ranked according to the following criteria:  
 First, employees already scheduled for that day are preferred, in order to minimize the number of separate workdays and reduce commuting.  
